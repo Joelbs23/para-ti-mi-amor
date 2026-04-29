@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buenos Días Mi Princesa 🌅🌸</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .mensaje {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10;
+            line-height: 1.4;
+            text-shadow: 0 0 15px #fff, 0 0 30px #ffd700, 0 0 45px #ffed4e;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .visible {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="mensaje" class="mensaje"></div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const mensaje = document.getElementById('mensaje');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let tiempo = 0;
+    let etapa = 0;
+    let indexLetra = 0;
+
+    // --- TEXTOS ---
+    const texto1 = "¡Buenos Días! 🥰";
+    const texto2 = "Que este día sea de muchas bendiciones para ti bebé<br>Te amo ❤️";
+    const nombre = "MARYURIS";
+
+    function escribirTexto(texto, callback) {
+        mensaje.innerHTML = texto.substring(0, indexLetra);
+        indexLetra++;
+        if(indexLetra <= texto.length) {
+            setTimeout(() => escribirTexto(texto, callback), 70);
+        } else {
+            if(callback) callback();
+        }
+    }
+
+    function cambiarMensaje() {
+        if(etapa === 0) {
+            mensaje.classList.add('visible');
+            mensaje.innerHTML = texto1;
+            setTimeout(() => {
+                mensaje.classList.remove('visible');
+                setTimeout(() => {
+                    etapa = 1; // Aparecen particulas formando el nombre
+                    setTimeout(() => {
+                        indexLetra = 0;
+                        etapa = 3; // Empiezan a pasar los pajaritos con mensajes
+                        setTimeout(() => {
+                            etapa = 2;
+                            mensaje.classList.add('visible');
+                            escribirTexto(texto2);
+                        }, 8000);
+                    }, 5000);
+                }, 1000);
+            }, 3000);
+        }
+    }
+
+
+    // --- ESTRELLAS ---
+    let estrellas = [];
+    for(let i=0; i<200; i++) {
+        estrellas.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5});
+    }
+
+
+    // --- 🎇 PARTICULAS FORMANDO EL NOMBRE ---
+    const coloresParticulas = ['#ff0080', '#00ffff', '#ffff00', '#ff00ff', '#00ff00', '#ff6600'];
+    class Particula {
+        constructor(targetX, targetY) {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.r = Math.random() * 3 + 2;
+            this.color = coloresParticulas[Math.floor(Math.random() * coloresParticulas.length)];
+            this.vx = (targetX - this.x) * 0.01;
+            this.vy = (targetY - this.y) * 0.01;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+        }
+        draw() {
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+            ctx.fillStyle = this.color; ctx.shadowColor = this.color; ctx.shadowBlur = 10; ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+    let particulas = [];
+    function crearNombre() {
+        particulas = [];
+        ctx.font = 'bold 80px Arial';
+        let espacio = 90;
+        let inicioX = canvas.width / 2 - (nombre.length * espacio) / 2;
+        let y = canvas.height / 2 - 60;
+        for(let i=0; i<nombre.length; i++) {
+            for(let j=0; j<30; j++) {
+                let offX = (Math.random() - 0.5) * 50;
+                let offY = (Math.random() - 0.5) * 40;
+                particulas.push(new Particula(inicioX + i*espacio + offX, y + offY));
+            }
+        }
+    }
+
+
+    // --- 🕊️ PÁJAROS CON MENSAJES ---
+    const frases = ["Te amo", "Eres la mejor", "Mi princesa", "Única", "Especial"];
+    class PajaroMensaje {
+        constructor() {
+            this.x = canvas.width + Math.random()*200;
+            this.y = Math.random() * (canvas.height/2) + 50;
+            this.vel = Math.random() * 1.5 + 1;
+            this.texto = frases[Math.floor(Math.random() * frases.length)];
+        }
+        update() {
+            this.x -= this.vel;
+        }
+        draw() {
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = "white";
+            ctx.shadowBlur = 10;
+            ctx.font = 'bold 28px Arial';
+            ctx.fillText(this.texto, this.x, this.y);
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    let pajarosMensajes = [];
+    function agregarPajaro() {
+        pajarosMensajes.push(new PajaroMensaje());
+        if(etapa === 3) setTimeout(agregarPajaro, 2000);
+    }
+
+
+    // --- 🌸 JARDÍN DE FLORES ---
+    const coloresFlores = ['#ff69b4', '#ff1493', '#ff6347', '#ffd700', '#dda0dd', '#9370db'];
+    class Flor {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.tam = Math.random() * 18 + 12;
+            this.color = coloresFlores[Math.floor(Math.random() * coloresFlores.length)];
+            this.angulo = Math.random() * Math.PI * 2;
+        }
+        dibujar(brillo) {
+            this.angulo += 0.02;
+            let movimiento = Math.sin(this.angulo) * 2;
+            let alturaReal = 100 * brillo;
+
+            ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x, this.y - alturaReal);
+            ctx.strokeStyle = '#2d882d'; ctx.lineWidth = 5; ctx.stroke();
+
+            if(brillo < 0.5) return;
+
+            ctx.beginPath(); ctx.ellipse(this.x - 10, this.y - alturaReal + 30, 15, 8, -0.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(this.x + 10, this.y - alturaReal + 45, 15, 8, 0.5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#44bb44';
+
+            ctx.fillStyle = this.color; ctx.shadowColor = this.color; ctx.shadowBlur = 10;
+            for(let i=0; i<8; i++) {
+                let ang = (i * Math.PI * 2) / 8;
+                let px = this.x + Math.cos(ang) * (this.tam + movimiento);
+                let py = this.y - alturaReal + Math.sin(ang) * (this.tam + movimiento);
+                ctx.beginPath(); ctx.ellipse(px, py, this.tam/3, this.tam/2, ang, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.beginPath(); ctx.arc(this.x, this.y - alturaReal, this.tam/3, 0, Math.PI*2); ctx.fillStyle = '#ffd700'; ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    let flores = [];
+    function crearJardin() {
+        flores = [];
+        for(let i=0; i<20; i++) {
+            let x = (canvas.width / 21) * (i+1) + Math.random()*30-15;
+            let y = canvas.height - 40;
+            flores.push(new Flor(x, y));
+        }
+    }
+
+    crearJardin();
+    crearNombre();
+
+
+    // --- ANIMACIÓN PRINCIPAL ---
+    function animar() {
+        tiempo += 0.004;
+        if(tiempo > 1) tiempo = 1;
+
+        // CIELO
+        let r = 11 + tiempo * (255 - 11);
+        let g = 12 + tiempo * (210 - 12);
+        let b = 42 + tiempo * (180 - 42);
+        const gradient = ctx.createLinearGradient(0,0,0,canvas.height);
+        gradient.addColorStop(0, `rgb(${r},${g},${b})`);
+        gradient.addColorStop(1, `rgb(255, ${140 + tiempo*60}, ${60 - tiempo*20})`);
+        ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        // ESTRELLAS
+        ctx.fillStyle = `rgba(255,255,255,${1-tiempo})`;
+        estrellas.forEach(e => { ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); });
+
+        // NUBES
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + tiempo*0.3})`;
+        ctx.beginPath(); ctx.arc(200 + Math.sin(tiempo)*20, 100, 50, 0, Math.PI*2); ctx.arc(250,90,60,0,Math.PI*2); ctx.arc(300,100,45,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(canvas.width-300 + Math.cos(tiempo)*15, 150, 40, 0, Math.PI*2); ctx.arc(canvas.width-250,140,50,0,Math.PI*2); ctx.fill();
+
+        // SOL
+        let solY = canvas.height - tiempo * (canvas.height * 0.6);
+        ctx.shadowColor = "#ffdd00"; ctx.shadowBlur = 10 + tiempo * 30;
+        ctx.fillStyle = "#ffed4e"; ctx.beginPath(); ctx.arc(canvas.width/2, solY, 70, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+
+        // FLORES Y PASTO
+        flores.forEach(f => { f.dibujar(tiempo); });
+        ctx.fillStyle = '#2d882d'; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
+
+        // PARTICULAS FORMANDO NOMBRE
+        if(etapa === 1) {
+            particulas.forEach(p => { p.update(); p.draw(); });
+        }
+
+        // PAJARITOS CON FRASES
+        if(etapa === 3) {
+            pajarosMensajes.forEach(p => { p.update(); p.draw(); });
+            pajarosMensajes = pajarosMensajes.filter(p => p.x > -150);
+        }
+
+        // INICIAR SECUENCIA
+        if(tiempo > 0.7 && etapa === 0) {
+            cambiarMensaje();
+        }
+
+        requestAnimationFrame(animar);
+    }
+
+    animar();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        crearJardin(); crearNombre();
+    });
+
+    // Iniciar los pajaritos despues de un tiempo
+    setTimeout(agregarPajaro, 8000);
+
+</script>
+
+</body>
+</html>
