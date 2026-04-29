@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tulipanes 🌷 Para Maryuris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000022, #440022, #ff4444);
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .poema {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 28px;
+            text-align: center;
+            line-height: 1.5;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ff0080;
+            z-index: 10;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div id="poema" class="poema"></div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const poemaElement = document.getElementById('poema');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // --- EL POEMA ---
+    const poema = `Tu belleza en mi alma se posa.
+No hay jardín que se compare,
+ni estrella que te acapare.
+
+Eres el sueño hecho flor,
+mi dulce y tierno amor.`;
+
+    let letraIndex = 0;
+    let crecimiento = 0; // Para que crezcan poco a poco
+
+    // Función para escribir el poema letra por letra
+    function escribirPoema() {
+        if(letraIndex < poema.length) {
+            poemaElement.innerHTML = poema.substring(0, letraIndex + 1).replace(/\n/g, '<br>');
+            letraIndex++;
+            
+            // Hacer que crezcan mientras se escribe
+            if(crecimiento < 100) {
+                crecimiento += 0.8;
+            }
+            
+            setTimeout(escribirPoema, 70); // Velocidad de escritura
+        } else {
+            // Cuando termine de escribir, que sigan moviéndose suavemente
+            setInterval(() => {
+                crecimiento = 100 + Math.sin(Date.now() * 0.001) * 5;
+            }, 50);
+        }
+    }
+
+    // Iniciar la escritura
+    setTimeout(escribirPoema, 1000);
+
+
+    // --- TULIPANES QUE CRECEN ---
+    class Tulipan {
+        constructor(x, y) {
+            this.x = x;
+            this.baseY = y;
+        }
+        draw(scale) {
+            // scale es que tan grande está (0 a 100)
+            let altura = (scale / 100) * 120;
+            let tamFlor = (scale / 100) * 20;
+            
+            if(altura < 5) return; // No dibujar si es muy chiquito
+
+            // Tallo
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.baseY);
+            ctx.lineTo(this.x, this.baseY - altura);
+            ctx.strokeStyle = '#2d882d';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // Hojas (salen cuando ya tiene tamaño)
+            if(scale > 40) {
+                ctx.beginPath();
+                ctx.arc(this.x - 15, this.baseY - altura + 40, 15, 0, Math.PI * 2);
+                ctx.arc(this.x + 15, this.baseY - altura + 50, 15, 0, Math.PI * 2);
+                ctx.fillStyle = '#44bb44';
+                ctx.fill();
+            }
+
+            // Flor (aparece al final)
+            if(scale > 70) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.baseY - altura, tamFlor, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff99cc';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x - 12, this.baseY - altura - 10, tamFlor*0.8, 0, Math.PI * 2);
+                ctx.arc(this.x + 12, this.baseY - altura - 10, tamFlor*0.8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    let tulipanes = [];
+    tulipanes.push(new Tulipan(canvas.width / 2 - 80, canvas.height - 50));
+    tulipanes.push(new Tulipan(canvas.width / 2, canvas.height - 80));
+    tulipanes.push(new Tulipan(canvas.width / 2 + 80, canvas.height - 50));
+
+
+    // --- ESTRELLAS DE FONDO ---
+    let estrellas = [];
+    for(let i=0; i<200; i++) {
+        estrellas.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height,
+            r: Math.random()*1.5
+        });
+    }
+
+
+    // --- ANIMACIÓN PRINCIPAL ---
+    function animar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dibujar estrellas
+        ctx.fillStyle = 'white';
+        estrellas.forEach(e => {
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+        // Dibujar tulipanes con el tamaño actual
+        tulipanes.forEach(t => {
+            t.draw(crecimiento);
+        });
+
+        requestAnimationFrame(animar);
+    }
+
+    animar();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+</script>
+
+</body>
+</html>
