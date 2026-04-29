@@ -2,31 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buenos Días Mi Princesa 🌅🌸</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0c2a;
         }
         canvas {
             display: block;
         }
         .mensaje {
             position: absolute;
-            top: 30%;
+            top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 42px;
+            font-size: clamp(24px, 5vw, 42px);
             font-weight: bold;
             text-align: center;
             z-index: 10;
             line-height: 1.4;
-            text-shadow: 0 0 15px #fff, 0 0 30px #ffd700, 0 0 45px #ffed4e;
+            text-shadow: 0 0 15px rgba(255,255,255,0.7), 0 0 30px #ffd700;
             opacity: 0;
-            transition: opacity 1s ease-in-out;
+            transition: opacity 1.5s ease-in-out;
+            width: 90%;
         }
         .visible {
             opacity: 1 !important;
@@ -36,7 +39,6 @@
 <body>
 
 <div id="mensaje" class="mensaje"></div>
-
 <canvas id="canvas"></canvas>
 
 <script>
@@ -44,41 +46,51 @@
     const ctx = canvas.getContext('2d');
     const mensaje = document.getElementById('mensaje');
     
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
 
     let tiempo = 0;
     let etapa = 0;
     let indexLetra = 0;
 
-    // --- TEXTOS ---
+    // --- CONFIGURACIÓN ---
     const texto1 = "¡Buenos Días! 🥰";
     const texto2 = "Que este día sea de muchas bendiciones para ti bebé<br>Te amo ❤️";
     const nombre = "MARYURIS";
+    const coloresParticulas = ['#ff0080', '#00ffff', '#ffff00', '#ff00ff', '#00ff00', '#ff6600'];
+    
+    // MENSAJES DE LAS AVES
+    const frases = ["Te amo", "Eres la mejor", "Única", "Especial", "Mi princesa", "Linda", "Te extraño"];
 
     function escribirTexto(texto, callback) {
         mensaje.innerHTML = texto.substring(0, indexLetra);
         indexLetra++;
         if(indexLetra <= texto.length) {
-            setTimeout(() => escribirTexto(texto, callback), 70);
-        } else {
-            if(callback) callback();
+            setTimeout(() => escribirTexto(texto, callback), 50);
+        } else if(callback) {
+            callback();
         }
     }
 
-    function cambiarMensaje() {
+    function secuenciaMensajes() {
         if(etapa === 0) {
             mensaje.classList.add('visible');
             mensaje.innerHTML = texto1;
             setTimeout(() => {
                 mensaje.classList.remove('visible');
                 setTimeout(() => {
-                    etapa = 1; // Aparecen particulas formando el nombre
+                    etapa = 1; 
+                    crearNombre();
                     setTimeout(() => {
-                        indexLetra = 0;
-                        etapa = 3; // Empiezan a pasar los pajaritos con mensajes
+                        etapa = 3; 
+                        agregarPajaro();
                         setTimeout(() => {
-                            etapa = 2;
+                            etapa = 2; 
+                            indexLetra = 0;
                             mensaje.classList.add('visible');
                             escribirTexto(texto2);
                         }, 8000);
@@ -88,194 +100,194 @@
         }
     }
 
-
     // --- ESTRELLAS ---
     let estrellas = [];
-    for(let i=0; i<200; i++) {
-        estrellas.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5});
+    for(let i=0; i<150; i++) {
+        estrellas.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.2});
     }
 
-
-    // --- 🎇 PARTICULAS FORMANDO EL NOMBRE ---
-    const coloresParticulas = ['#ff0080', '#00ffff', '#ffff00', '#ff00ff', '#00ff00', '#ff6600'];
+    // --- PARTICULAS DEL NOMBRE ---
     class Particula {
         constructor(targetX, targetY) {
             this.x = Math.random() * canvas.width;
             this.y = Math.random() * canvas.height;
             this.targetX = targetX;
             this.targetY = targetY;
-            this.r = Math.random() * 3 + 2;
+            this.r = Math.random() * 2 + 1.5;
             this.color = coloresParticulas[Math.floor(Math.random() * coloresParticulas.length)];
-            this.vx = (targetX - this.x) * 0.01;
-            this.vy = (targetY - this.y) * 0.01;
+            this.ease = 0.05;
+            this.vx = 0;
+            this.vy = 0;
         }
         update() {
+            this.vx = (this.targetX - this.x) * this.ease;
+            this.vy = (this.targetY - this.y) * this.ease;
             this.x += this.vx;
             this.y += this.vy;
         }
         draw() {
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
-            ctx.fillStyle = this.color; ctx.shadowColor = this.color; ctx.shadowBlur = 10; ctx.fill();
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+            ctx.fillStyle = this.color;
+            if(Math.abs(this.vx) < 0.5) {
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+            }
+            ctx.fill();
             ctx.shadowBlur = 0;
         }
     }
+
     let particulas = [];
     function crearNombre() {
         particulas = [];
-        ctx.font = 'bold 80px Arial';
-        let espacio = 90;
-        let inicioX = canvas.width / 2 - (nombre.length * espacio) / 2;
-        let y = canvas.height / 2 - 60;
+        let fontSize = canvas.width < 600 ? 40 : 80;
+        let espacio = canvas.width < 600 ? 45 : 90;
+        ctx.font = `bold ${fontSize}px Arial`;
+        let inicioX = canvas.width / 2 - (nombre.length * espacio) / 2 + (espacio/4);
+        let y = canvas.height / 2;
         for(let i=0; i<nombre.length; i++) {
-            for(let j=0; j<30; j++) {
-                let offX = (Math.random() - 0.5) * 50;
-                let offY = (Math.random() - 0.5) * 40;
+            for(let j=0; j<25; j++) {
+                let offX = (Math.random() - 0.5) * (espacio * 0.8);
+                let offY = (Math.random() - 0.5) * (fontSize * 0.8);
                 particulas.push(new Particula(inicioX + i*espacio + offX, y + offY));
             }
         }
     }
 
-
-    // --- 🕊️ PÁJAROS CON MENSAJES ---
-    const frases = ["Te amo", "Eres la mejor", "Mi princesa", "Única", "Especial"];
+    // --- AVES CON MENSAJES (MEJORADO) ---
     class PajaroMensaje {
         constructor() {
-            this.x = canvas.width + Math.random()*200;
-            this.y = Math.random() * (canvas.height/2) + 50;
-            this.vel = Math.random() * 1.5 + 1;
+            this.x = canvas.width + 150;
+            this.y = Math.random() * (canvas.height * 0.5) + 50;
+            this.vel = Math.random() * 1.5 + 1; // Velocidad suave para poder leer
             this.texto = frases[Math.floor(Math.random() * frases.length)];
+            this.wing = 0;
         }
-        update() {
-            this.x -= this.vel;
+        update() { 
+            this.x -= this.vel; 
+            this.wing += 0.1;
         }
         draw() {
+            ctx.save();
+            // Dibujar silueta simple de ave 🕊️
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let wingY = Math.sin(this.wing) * 5;
+            ctx.moveTo(this.x, this.y);
+            ctx.quadraticCurveTo(this.x + 10, this.y - 10 + wingY, this.x + 20, this.y);
+            ctx.moveTo(this.x, this.y);
+            ctx.quadraticCurveTo(this.x - 10, this.y - 10 + wingY, this.x - 20, this.y);
+            ctx.stroke();
+
+            // Dibujar el mensaje
             ctx.fillStyle = 'white';
-            ctx.shadowColor = "white";
-            ctx.shadowBlur = 10;
-            ctx.font = 'bold 28px Arial';
-            ctx.fillText(this.texto, this.x, this.y);
-            ctx.shadowBlur = 0;
+            ctx.shadowColor = "rgba(0,0,0,0.3)";
+            ctx.shadowBlur = 5;
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = "center";
+            ctx.fillText(this.texto, this.x, this.y + 25);
+            ctx.restore();
         }
     }
 
     let pajarosMensajes = [];
     function agregarPajaro() {
-        pajarosMensajes.push(new PajaroMensaje());
-        if(etapa === 3) setTimeout(agregarPajaro, 2000);
+        if(etapa >= 3) {
+            pajarosMensajes.push(new PajaroMensaje());
+            // Aparecen cada 3 segundos
+            setTimeout(agregarPajaro, 3000);
+        }
     }
 
-
-    // --- 🌸 JARDÍN DE FLORES ---
-    const coloresFlores = ['#ff69b4', '#ff1493', '#ff6347', '#ffd700', '#dda0dd', '#9370db'];
+    // --- FLORES ---
     class Flor {
         constructor(x, y) {
             this.x = x; this.y = y;
-            this.tam = Math.random() * 18 + 12;
-            this.color = coloresFlores[Math.floor(Math.random() * coloresFlores.length)];
-            this.angulo = Math.random() * Math.PI * 2;
+            this.tam = Math.random() * 15 + 10;
+            this.color = ['#ff69b4', '#ff1493', '#ffd700', '#9370db'][Math.floor(Math.random()*4)];
+            this.angulo = Math.random() * 10;
         }
         dibujar(brillo) {
-            this.angulo += 0.02;
-            let movimiento = Math.sin(this.angulo) * 2;
-            let alturaReal = 100 * brillo;
-
-            ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x, this.y - alturaReal);
-            ctx.strokeStyle = '#2d882d'; ctx.lineWidth = 5; ctx.stroke();
-
-            if(brillo < 0.5) return;
-
-            ctx.beginPath(); ctx.ellipse(this.x - 10, this.y - alturaReal + 30, 15, 8, -0.5, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(this.x + 10, this.y - alturaReal + 45, 15, 8, 0.5, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#44bb44';
-
-            ctx.fillStyle = this.color; ctx.shadowColor = this.color; ctx.shadowBlur = 10;
-            for(let i=0; i<8; i++) {
-                let ang = (i * Math.PI * 2) / 8;
-                let px = this.x + Math.cos(ang) * (this.tam + movimiento);
-                let py = this.y - alturaReal + Math.sin(ang) * (this.tam + movimiento);
-                ctx.beginPath(); ctx.ellipse(px, py, this.tam/3, this.tam/2, ang, 0, Math.PI*2); ctx.fill();
+            this.angulo += 0.03;
+            let alt = 80 * brillo;
+            let oscilacion = Math.sin(this.angulo) * 3;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.quadraticCurveTo(this.x + oscilacion, this.y - alt/2, this.x, this.y - alt);
+            ctx.strokeStyle = '#2d882d'; ctx.lineWidth = 3; ctx.stroke();
+            if(brillo > 0.6) {
+                ctx.fillStyle = this.color;
+                for(let i=0; i<5; i++) {
+                    let a = (i * Math.PI * 2) / 5;
+                    ctx.beginPath();
+                    ctx.arc(this.x + Math.cos(a)*8, this.y - alt + Math.sin(a)*8, 5, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - alt, 4, 0, Math.PI*2);
+                ctx.fillStyle = 'yellow'; ctx.fill();
             }
-            ctx.beginPath(); ctx.arc(this.x, this.y - alturaReal, this.tam/3, 0, Math.PI*2); ctx.fillStyle = '#ffd700'; ctx.fill();
-            ctx.shadowBlur = 0;
         }
     }
 
     let flores = [];
     function crearJardin() {
         flores = [];
-        for(let i=0; i<20; i++) {
-            let x = (canvas.width / 21) * (i+1) + Math.random()*30-15;
-            let y = canvas.height - 40;
-            flores.push(new Flor(x, y));
+        let cant = canvas.width < 600 ? 12 : 25;
+        for(let i=0; i<cant; i++) {
+            flores.push(new Flor((canvas.width/cant)*i + (canvas.width/cant)/2, canvas.height - 35));
         }
     }
-
     crearJardin();
-    crearNombre();
 
-
-    // --- ANIMACIÓN PRINCIPAL ---
+    // --- LOOP PRINCIPAL ---
     function animar() {
-        tiempo += 0.004;
-        if(tiempo > 1) tiempo = 1;
+        if(tiempo < 1) tiempo += 0.005;
 
-        // CIELO
-        let r = 11 + tiempo * (255 - 11);
-        let g = 12 + tiempo * (210 - 12);
-        let b = 42 + tiempo * (180 - 42);
-        const gradient = ctx.createLinearGradient(0,0,0,canvas.height);
-        gradient.addColorStop(0, `rgb(${r},${g},${b})`);
-        gradient.addColorStop(1, `rgb(255, ${140 + tiempo*60}, ${60 - tiempo*20})`);
-        ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Cielo
+        let r = Math.floor(11 + tiempo * 244);
+        let g = Math.floor(12 + tiempo * 198);
+        let b = Math.floor(42 + tiempo * 138);
+        const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+        grad.addColorStop(0, `rgb(${r},${g},${b})`);
+        grad.addColorStop(1, `rgb(255, ${140 + tiempo*60}, 100)`);
+        ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-        // ESTRELLAS
+        // Estrellas
         ctx.fillStyle = `rgba(255,255,255,${1-tiempo})`;
         estrellas.forEach(e => { ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); });
 
-        // NUBES
-        ctx.fillStyle = `rgba(255,255,255,${0.3 + tiempo*0.3})`;
-        ctx.beginPath(); ctx.arc(200 + Math.sin(tiempo)*20, 100, 50, 0, Math.PI*2); ctx.arc(250,90,60,0,Math.PI*2); ctx.arc(300,100,45,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(canvas.width-300 + Math.cos(tiempo)*15, 150, 40, 0, Math.PI*2); ctx.arc(canvas.width-250,140,50,0,Math.PI*2); ctx.fill();
+        // Sol
+        let solY = canvas.height - (tiempo * (canvas.height * 0.7));
+        ctx.shadowColor = "#ffdd00"; ctx.shadowBlur = 20 * tiempo;
+        ctx.fillStyle = "#ffed4e";
+        ctx.beginPath(); ctx.arc(canvas.width/2, solY, 60, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
 
-        // SOL
-        let solY = canvas.height - tiempo * (canvas.height * 0.6);
-        ctx.shadowColor = "#ffdd00"; ctx.shadowBlur = 10 + tiempo * 30;
-        ctx.fillStyle = "#ffed4e"; ctx.beginPath(); ctx.arc(canvas.width/2, solY, 70, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+        // Flores y Suelo
+        flores.forEach(f => f.dibujar(tiempo));
+        ctx.fillStyle = '#1e5d1e'; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
 
-        // FLORES Y PASTO
-        flores.forEach(f => { f.dibujar(tiempo); });
-        ctx.fillStyle = '#2d882d'; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
-
-        // PARTICULAS FORMANDO NOMBRE
-        if(etapa === 1) {
+        if(etapa >= 1) {
             particulas.forEach(p => { p.update(); p.draw(); });
         }
-
-        // PAJARITOS CON FRASES
-        if(etapa === 3) {
-            pajarosMensajes.forEach(p => { p.update(); p.draw(); });
-            pajarosMensajes = pajarosMensajes.filter(p => p.x > -150);
+        if(etapa >= 3) {
+            pajarosMensajes.forEach(p => { 
+                p.update(); 
+                p.draw(); 
+            });
+            // Limpiar aves que salen de pantalla
+            pajarosMensajes = pajarosMensajes.filter(p => p.x > -200);
         }
 
-        // INICIAR SECUENCIA
-        if(tiempo > 0.7 && etapa === 0) {
-            cambiarMensaje();
-        }
+        if(tiempo > 0.8 && etapa === 0) secuenciaMensajes();
 
         requestAnimationFrame(animar);
     }
 
     animar();
-
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        crearJardin(); crearNombre();
-    });
-
-    // Iniciar los pajaritos despues de un tiempo
-    setTimeout(agregarPajaro, 8000);
-
 </script>
-
 </body>
 </html>
