@@ -8,7 +8,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: linear-gradient(to bottom, #000011, #220011, #661133);
+            background: linear-gradient(to bottom, #00001a, #220011, #550022);
             font-family: 'Arial', sans-serif;
         }
         canvas {
@@ -20,7 +20,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 26px;
+            font-size: 28px;
             text-align: center;
             line-height: 1.6;
             text-shadow: 0 0 10px #fff, 0 0 20px #ff0080, 0 0 30px #ff0080;
@@ -63,7 +63,7 @@ mi dulce y tierno amor.`;
             letraIndex++;
             
             if(crecimiento < 100) {
-                crecimiento += 0.6;
+                crecimiento += 0.7;
             }
             
             setTimeout(escribirPoema, 80);
@@ -73,85 +73,89 @@ mi dulce y tierno amor.`;
     setTimeout(escribirPoema, 1000);
 
 
-    // --- TULIPANES BONITOS Y REALISTAS ---
+    // --- TULIPANES IGUAL QUE EN LA FOTO ---
     class Tulipan {
-        constructor(x, color) {
+        constructor(x, colorFlor) {
             this.x = x;
-            this.baseY = canvas.height + 50;
-            this.color = color;
+            this.baseY = canvas.height;
+            this.color = colorFlor;
         }
 
         draw(scale) {
-            let alturaMax = 220;
-            let altura = (scale / 100) * alturaMax;
-            let centroY = this.baseY - altura;
+            let alturaTotal = 250; // Tallo largo y bonito
+            let altura = (scale / 100) * alturaTotal;
+            let centroFlorY = this.baseY - altura;
 
-            if(altura < 10) return;
+            if(altura < 5) return;
 
-            // TALLO VERDE LARGO
+            // 🌱 TALLO VERDE
             ctx.beginPath();
             ctx.moveTo(this.x, this.baseY);
-            ctx.lineTo(this.x, centroY - 40);
-            ctx.strokeStyle = '#3a993a';
-            ctx.lineWidth = 8;
+            ctx.lineTo(this.x, centroFlorY);
+            ctx.strokeStyle = '#2d992d';
+            ctx.lineWidth = 7;
             ctx.lineCap = 'round';
             ctx.stroke();
 
-            // HOJAS
-            ctx.beginPath();
-            ctx.ellipse(this.x - 25, centroY + 20, 25, 12, -0.5, 0, Math.PI*2);
-            ctx.ellipse(this.x + 25, centroY + 40, 25, 12, 0.5, 0, Math.PI*2);
-            ctx.fillStyle = '#4ec94e';
-            ctx.fill();
+            // 🍃 HOJAS
+            if(scale > 30) {
+                ctx.beginPath();
+                ctx.ellipse(this.x - 20, centroFlorY + 50, 22, 12, -0.6, 0, Math.PI*2);
+                ctx.ellipse(this.x + 20, centroFlorY + 70, 22, 12, 0.6, 0, Math.PI*2);
+                ctx.fillStyle = '#44bb44';
+                ctx.fill();
+            }
 
-            if(scale < 50) return;
+            if(scale < 60) return;
 
-            // PETALOS GRANDES Y BONITOS
+            // 🌸 PETALOS (COMO EN LA FOTO)
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.color;
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 10;
 
-            // Petalo central
+            // Pétalo de en medio
             ctx.beginPath();
-            ctx.ellipse(this.x, centroY - 40, 18, 28, 0, 0, Math.PI*2);
+            ctx.moveTo(this.x, centroFlorY - 10);
+            ctx.bezierCurveTo(this.x, centroFlorY - 35, this.x - 20, centroFlorY - 35, this.x - 20, centroFlorY - 10);
+            ctx.bezierCurveTo(this.x - 20, centroFlorY + 5, this.x, centroFlorY + 10, this.x, centroFlorY - 10);
             ctx.fill();
 
-            // Petalos de los lados
             ctx.beginPath();
-            ctx.ellipse(this.x - 16, centroY - 35, 16, 24, -0.5, 0, Math.PI*2);
+            ctx.moveTo(this.x, centroFlorY - 10);
+            ctx.bezierCurveTo(this.x, centroFlorY - 35, this.x + 20, centroFlorY - 35, this.x + 20, centroFlorY - 10);
+            ctx.bezierCurveTo(this.x + 20, centroFlorY + 5, this.x, centroFlorY + 10, this.x, centroFlorY - 10);
             ctx.fill();
+
+            // Base de la flor
             ctx.beginPath();
-            ctx.ellipse(this.x + 16, centroY - 35, 16, 24, 0.5, 0, Math.PI*2);
+            ctx.arc(this.x, centroFlorY, 14, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.shadowBlur = 0;
         }
     }
 
+    // Colores iguales a la imagen (Rojo y Rosa)
     let tulipanes = [
-        new Tulipan(canvas.width / 2 - 110, '#ff66b2'), // Rosa claro
-        new Tulipan(canvas.width / 2, '#ff1a75'),      // Rojo fuerte
-        new Tulipan(canvas.width / 2 + 110, '#ff66b2')  // Rosa claro
+        new Tulipan(canvas.width / 2 - 120, '#ff4d94'),
+        new Tulipan(canvas.width / 2, '#e6005c'),
+        new Tulipan(canvas.width / 2 + 120, '#ff4d94')
     ];
 
 
-    // --- ESTRELLAS DE FONDO ---
+    // --- ESTRELLAS ---
     let estrellas = [];
     for(let i=0; i<250; i++) {
         estrellas.push({
             x: Math.random()*canvas.width,
             y: Math.random()*canvas.height,
-            r: Math.random()*1.5 + 0.5,
-            brillo: Math.random()
+            r: Math.random()*1.5 + 0.5
         });
     }
 
-
-    // --- ANIMACIÓN ---
     function animar() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Fondo estrellado
         ctx.fillStyle = 'white';
         estrellas.forEach(e => {
             ctx.beginPath();
@@ -159,7 +163,6 @@ mi dulce y tierno amor.`;
             ctx.fill();
         });
 
-        // Dibujar tulipanes
         tulipanes.forEach(t => {
             t.draw(crecimiento);
         });
@@ -172,12 +175,6 @@ mi dulce y tierno amor.`;
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        tulipanes[0].x = canvas.width / 2 - 110;
-        tulipanes[1].x = canvas.width / 2;
-        tulipanes[2].x = canvas.width / 2 + 110;
-        tulipanes[0].baseY = canvas.height + 50;
-        tulipanes[1].baseY = canvas.height + 50;
-        tulipanes[2].baseY = canvas.height + 50;
     });
 
 </script>
