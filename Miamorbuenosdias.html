@@ -3,37 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buenos Días Mi Princesa 🌅🌸</title>
+    <title>Para Mi Princesa 🌅</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0c2a;
-        }
-        canvas {
-            display: block;
-        }
+        body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial', sans-serif; }
+        canvas { display: block; }
         .mensaje {
-            position: absolute;
-            top: 25%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: clamp(24px, 5vw, 42px);
-            font-weight: bold;
-            text-align: center;
-            z-index: 10;
-            line-height: 1.4;
-            text-shadow: 0 0 15px rgba(255,255,255,0.7), 0 0 30px #ffd700;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
-            width: 90%;
+            position: absolute; top: 22%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: clamp(20px, 4.5vw, 38px); font-weight: bold;
+            text-align: center; z-index: 10; opacity: 0; transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 0 20px rgba(255,255,255,0.5); width: 85%;
         }
-        .visible {
-            opacity: 1 !important;
-        }
+        .visible { opacity: 1; transform: translate(-50%, -40%); }
     </style>
 </head>
 <body>
@@ -44,250 +24,204 @@
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const mensaje = document.getElementById('mensaje');
+    const divMensaje = document.getElementById('mensaje');
     
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    let tiempo = 0;
-    let etapa = 0;
-    let indexLetra = 0;
-
-    // --- CONFIGURACIÓN ---
-    const texto1 = "¡Buenos Días! 🥰";
-    const texto2 = "Que este día sea de muchas bendiciones para ti bebé<br>Te amo ❤️";
+    let width, height, tiempo = 0, etapa = 0;
+    const particulas = [], flores = [], estrellas = [], pajaros = [];
     const nombre = "MARYURIS";
-    const coloresParticulas = ['#ff0080', '#00ffff', '#ffff00', '#ff00ff', '#00ff00', '#ff6600'];
-    
-    // MENSAJES DE LAS AVES
-    const frases = ["Te amo", "Eres la mejor", "Única", "Especial", "Mi princesa", "Linda", "Te extraño"];
+    const frases = ["Te amo", "Eres la mejor", "Única", "Especial", "Mi motor", "Mi reina"];
 
-    function escribirTexto(texto, callback) {
-        mensaje.innerHTML = texto.substring(0, indexLetra);
-        indexLetra++;
-        if(indexLetra <= texto.length) {
-            setTimeout(() => escribirTexto(texto, callback), 50);
-        } else if(callback) {
-            callback();
-        }
+    function init() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        crearEstrellas();
+        crearJardin();
     }
 
-    function secuenciaMensajes() {
-        if(etapa === 0) {
-            mensaje.classList.add('visible');
-            mensaje.innerHTML = texto1;
-            setTimeout(() => {
-                mensaje.classList.remove('visible');
-                setTimeout(() => {
-                    etapa = 1; 
-                    crearNombre();
-                    setTimeout(() => {
-                        etapa = 3; 
-                        agregarPajaro();
-                        setTimeout(() => {
-                            etapa = 2; 
-                            indexLetra = 0;
-                            mensaje.classList.add('visible');
-                            escribirTexto(texto2);
-                        }, 8000);
-                    }, 5000);
-                }, 1000);
-            }, 3000);
-        }
-    }
-
-    // --- ESTRELLAS ---
-    let estrellas = [];
-    for(let i=0; i<150; i++) {
-        estrellas.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.2});
-    }
-
-    // --- PARTICULAS DEL NOMBRE ---
+    // --- FÍSICA AVANZADA ---
     class Particula {
-        constructor(targetX, targetY) {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.targetX = targetX;
-            this.targetY = targetY;
-            this.r = Math.random() * 2 + 1.5;
-            this.color = coloresParticulas[Math.floor(Math.random() * coloresParticulas.length)];
-            this.ease = 0.05;
-            this.vx = 0;
-            this.vy = 0;
+        constructor(tx, ty) {
+            // Empiezan en el centro con una explosión
+            this.x = width / 2;
+            this.y = height / 2;
+            this.tx = tx; 
+            this.ty = ty;
+            // Velocidad inicial explosiva
+            const angulo = Math.random() * Math.PI * 2;
+            const fuerza = Math.random() * 15 + 5;
+            this.vx = Math.cos(angulo) * fuerza;
+            this.vy = Math.sin(angulo) * fuerza;
+            
+            this.color = `hsl(${Math.random() * 50 + 330}, 100%, 75%)`; // Tonos rosados/neón
+            this.friccion = 0.95;
+            this.resorte = 0.04; // Fuerza de atracción al objetivo
         }
         update() {
-            this.vx = (this.targetX - this.x) * this.ease;
-            this.vy = (this.targetY - this.y) * this.ease;
+            if (etapa >= 1) {
+                // Atracción elástica al punto del nombre
+                let dx = this.tx - this.x;
+                let dy = this.ty - this.y;
+                this.vx += dx * this.resorte;
+                this.vy += dy * this.resorte;
+            }
+            this.vx *= this.friccion;
+            this.vy *= this.friccion;
             this.x += this.vx;
             this.y += this.vy;
         }
         draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
             ctx.fillStyle = this.color;
-            if(Math.abs(this.vx) < 0.5) {
-                ctx.shadowColor = this.color;
-                ctx.shadowBlur = 10;
-            }
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 1.8, 0, Math.PI*2);
             ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    let particulas = [];
-    function crearNombre() {
-        particulas = [];
-        let fontSize = canvas.width < 600 ? 40 : 80;
-        let espacio = canvas.width < 600 ? 45 : 90;
-        ctx.font = `bold ${fontSize}px Arial`;
-        let inicioX = canvas.width / 2 - (nombre.length * espacio) / 2 + (espacio/4);
-        let y = canvas.height / 2;
-        for(let i=0; i<nombre.length; i++) {
-            for(let j=0; j<25; j++) {
-                let offX = (Math.random() - 0.5) * (espacio * 0.8);
-                let offY = (Math.random() - 0.5) * (fontSize * 0.8);
-                particulas.push(new Particula(inicioX + i*espacio + offX, y + offY));
+            if (etapa === 1) { // Brillo extra cuando forman el nombre
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
             }
         }
     }
 
-    // --- AVES CON MENSAJES (MEJORADO) ---
-    class PajaroMensaje {
+    class Ave {
         constructor() {
-            this.x = canvas.width + 150;
-            this.y = Math.random() * (canvas.height * 0.5) + 50;
-            this.vel = Math.random() * 1.5 + 1; // Velocidad suave para poder leer
-            this.texto = frases[Math.floor(Math.random() * frases.length)];
-            this.wing = 0;
-        }
-        update() { 
-            this.x -= this.vel; 
-            this.wing += 0.1;
+            this.x = width + 100;
+            this.y = Math.random() * height * 0.4 + 40;
+            this.v = Math.random() * 1.5 + 2.5;
+            this.txt = frases[Math.floor(Math.random()*frases.length)];
+            this.fase = Math.random() * Math.PI;
         }
         draw() {
+            this.x -= this.v;
+            this.fase += 0.15;
+            let yOff = Math.sin(this.fase) * 6;
+            
             ctx.save();
-            // Dibujar silueta simple de ave 🕊️
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255,255,255,0.8)";
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            let wingY = Math.sin(this.wing) * 5;
-            ctx.moveTo(this.x, this.y);
-            ctx.quadraticCurveTo(this.x + 10, this.y - 10 + wingY, this.x + 20, this.y);
-            ctx.moveTo(this.x, this.y);
-            ctx.quadraticCurveTo(this.x - 10, this.y - 10 + wingY, this.x - 20, this.y);
+            // Ala izquierda
+            ctx.moveTo(this.x, this.y + yOff);
+            ctx.bezierCurveTo(this.x - 10, this.y - 15 + yOff, this.x - 25, this.y + yOff, this.x - 30, this.y + 5 + yOff);
+            // Ala derecha
+            ctx.moveTo(this.x, this.y + yOff);
+            ctx.bezierCurveTo(this.x + 10, this.y - 15 + yOff, this.x + 25, this.y + yOff, this.x + 30, this.y + 5 + yOff);
             ctx.stroke();
 
-            // Dibujar el mensaje
-            ctx.fillStyle = 'white';
-            ctx.shadowColor = "rgba(0,0,0,0.3)";
-            ctx.shadowBlur = 5;
-            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = "white";
+            ctx.font = "bold 18px 'Segoe UI'";
             ctx.textAlign = "center";
-            ctx.fillText(this.texto, this.x, this.y + 25);
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "white";
+            ctx.fillText(this.txt, this.x, this.y + 40);
             ctx.restore();
         }
     }
 
-    let pajarosMensajes = [];
-    function agregarPajaro() {
-        if(etapa >= 3) {
-            pajarosMensajes.push(new PajaroMensaje());
-            // Aparecen cada 3 segundos
-            setTimeout(agregarPajaro, 3000);
-        }
+    function crearEstrellas() {
+        for(let i=0; i<120; i++) estrellas.push({x: Math.random()*width, y: Math.random()*height, s: Math.random()*1.5});
     }
 
-    // --- FLORES ---
-    class Flor {
-        constructor(x, y) {
-            this.x = x; this.y = y;
-            this.tam = Math.random() * 15 + 10;
-            this.color = ['#ff69b4', '#ff1493', '#ffd700', '#9370db'][Math.floor(Math.random()*4)];
-            this.angulo = Math.random() * 10;
-        }
-        dibujar(brillo) {
-            this.angulo += 0.03;
-            let alt = 80 * brillo;
-            let oscilacion = Math.sin(this.angulo) * 3;
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.quadraticCurveTo(this.x + oscilacion, this.y - alt/2, this.x, this.y - alt);
-            ctx.strokeStyle = '#2d882d'; ctx.lineWidth = 3; ctx.stroke();
-            if(brillo > 0.6) {
-                ctx.fillStyle = this.color;
-                for(let i=0; i<5; i++) {
-                    let a = (i * Math.PI * 2) / 5;
-                    ctx.beginPath();
-                    ctx.arc(this.x + Math.cos(a)*8, this.y - alt + Math.sin(a)*8, 5, 0, Math.PI*2);
-                    ctx.fill();
-                }
-                ctx.beginPath();
-                ctx.arc(this.x, this.y - alt, 4, 0, Math.PI*2);
-                ctx.fillStyle = 'yellow'; ctx.fill();
+    function crearNombre() {
+        const fontSize = width < 600 ? 50 : 100;
+        ctx.font = `bold ${fontSize}px Arial`;
+        const metrics = ctx.measureText(nombre);
+        const startX = (width - metrics.width) / 2;
+        const startY = height / 2 + 50;
+        
+        // Creamos puntos para las partículas basándonos en el texto real
+        for(let i=0; i<nombre.length; i++) {
+            let letraX = startX + (i * (metrics.width / nombre.length));
+            for(let j=0; j<40; j++) { // Densidad de partículas
+                let px = letraX + Math.random() * (fontSize * 0.6);
+                let py = startY + (Math.random() - 0.5) * fontSize;
+                particulas.push(new Particula(px, py));
             }
         }
     }
 
-    let flores = [];
     function crearJardin() {
-        flores = [];
-        let cant = canvas.width < 600 ? 12 : 25;
-        for(let i=0; i<cant; i++) {
-            flores.push(new Flor((canvas.width/cant)*i + (canvas.width/cant)/2, canvas.height - 35));
-        }
+        const numFlores = width < 600 ? 15 : 30;
+        for(let i=0; i<numFlores; i++) flores.push({
+            x: (width/numFlores)*i + (Math.random()*20), 
+            c: `hsl(${Math.random()*60 + 300}, 80%, 70%)`,
+            a: Math.random() * Math.PI,
+            h: Math.random() * 40 + 60
+        });
     }
-    crearJardin();
 
-    // --- LOOP PRINCIPAL ---
-    function animar() {
-        if(tiempo < 1) tiempo += 0.005;
+    function dibujarEscena() {
+        // Cielo: Transición de azul profundo a naranja amanecer
+        const g = ctx.createLinearGradient(0, 0, 0, height);
+        g.addColorStop(0, `rgb(${5 + tiempo*30}, ${5 + tiempo*80}, ${20 + tiempo*180})`);
+        g.addColorStop(0.6, `rgb(${255*tiempo}, ${120*tiempo}, ${60*tiempo})`);
+        g.addColorStop(1, `rgb(${255*tiempo}, ${180*tiempo}, ${100*tiempo})`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, width, height);
 
-        // Cielo
-        let r = Math.floor(11 + tiempo * 244);
-        let g = Math.floor(12 + tiempo * 198);
-        let b = Math.floor(42 + tiempo * 138);
-        const grad = ctx.createLinearGradient(0,0,0,canvas.height);
-        grad.addColorStop(0, `rgb(${r},${g},${b})`);
-        grad.addColorStop(1, `rgb(255, ${140 + tiempo*60}, 100)`);
-        ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Estrellas titilantes
+        ctx.fillStyle = `rgba(255,255,255,${(1-tiempo) * Math.random()})`;
+        estrellas.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
 
-        // Estrellas
-        ctx.fillStyle = `rgba(255,255,255,${1-tiempo})`;
-        estrellas.forEach(e => { ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); });
+        // Sol con resplandor suave
+        let solY = height - (tiempo * height * 0.75);
+        let solSize = 65 + Math.sin(Date.now()*0.003)*5;
+        ctx.save();
+        ctx.shadowBlur = 50 * tiempo;
+        ctx.shadowColor = "rgba(255, 200, 0, 0.8)";
+        ctx.fillStyle = "#fffce0";
+        ctx.beginPath(); ctx.arc(width/2, solY, solSize, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
 
-        // Sol
-        let solY = canvas.height - (tiempo * (canvas.height * 0.7));
-        ctx.shadowColor = "#ffdd00"; ctx.shadowBlur = 20 * tiempo;
-        ctx.fillStyle = "#ffed4e";
-        ctx.beginPath(); ctx.arc(canvas.width/2, solY, 60, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
+        // Lógica de etapas
+        if (tiempo > 0.85 && etapa === 0) {
+            etapa = 1;
+            crearNombre();
+            divMensaje.innerHTML = "¡Buenos Días Princesa! 🌸";
+            divMensaje.classList.add("visible");
+            setTimeout(() => {
+                etapa = 2;
+                divMensaje.innerHTML = "Que hoy todo sea bendición para ti.<br>Te amo ❤️";
+                // Empezar a generar aves
+                setInterval(() => { if(pajaros.length < 5) pajaros.push(new Ave()); }, 3000);
+            }, 6000);
+        }
+
+        // Dibujar Partículas con rastro
+        particulas.forEach(p => { p.update(); p.draw(); });
+
+        // Aves
+        pajaros.forEach((p, i) => { 
+            p.draw(); 
+            if(p.x < -150) pajaros.splice(i, 1); 
+        });
 
         // Flores y Suelo
-        flores.forEach(f => f.dibujar(tiempo));
-        ctx.fillStyle = '#1e5d1e'; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
+        flores.forEach(f => {
+            f.a += 0.04;
+            let actualH = f.h * tiempo;
+            ctx.strokeStyle = "#1b4d16";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(f.x, height);
+            ctx.quadraticCurveTo(f.x + Math.sin(f.a)*10, height - actualH/2, f.x + Math.sin(f.a)*5, height - actualH);
+            ctx.stroke();
+            if(tiempo > 0.7) {
+                ctx.fillStyle = f.c;
+                ctx.beginPath(); ctx.arc(f.x + Math.sin(f.a)*5, height - actualH, 10, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "yellow";
+                ctx.beginPath(); ctx.arc(f.x + Math.sin(f.a)*5, height - actualH, 4, 0, Math.PI*2); ctx.fill();
+            }
+        });
 
-        if(etapa >= 1) {
-            particulas.forEach(p => { p.update(); p.draw(); });
-        }
-        if(etapa >= 3) {
-            pajarosMensajes.forEach(p => { 
-                p.update(); 
-                p.draw(); 
-            });
-            // Limpiar aves que salen de pantalla
-            pajarosMensajes = pajarosMensajes.filter(p => p.x > -200);
-        }
+        ctx.fillStyle = "#051a05";
+        ctx.fillRect(0, height - 15, width, 15);
 
-        if(tiempo > 0.8 && etapa === 0) secuenciaMensajes();
-
-        requestAnimationFrame(animar);
+        if (tiempo < 1) tiempo += 0.004;
+        requestAnimationFrame(dibujarEscena);
     }
 
-    animar();
+    window.addEventListener('resize', init);
+    init();
+    dibujarEscena();
 </script>
 </body>
 </html>
