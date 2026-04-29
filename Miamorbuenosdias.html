@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Para Mi Princesa 🌅</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial', sans-serif; }
+        /* Ajuste 1: Fondo base más oscuro para contraste inmediato */
+        body { margin: 0; overflow: hidden; background: #010103; font-family: 'Arial', sans-serif; }
         canvas { display: block; }
         .mensaje {
-            position: absolute; top: 22%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%);
             color: white; font-size: clamp(20px, 4.5vw, 38px); font-weight: bold;
-            text-align: center; z-index: 10; opacity: 0; transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 0 20px rgba(255,255,255,0.5); width: 85%;
+            text-align: center; z-index: 10; opacity: 0; transition: all 2s ease;
+            text-shadow: 0 0 15px rgba(255,255,255,0.6); width: 85%;
         }
-        .visible { opacity: 1; transform: translate(-50%, -40%); }
+        .visible { opacity: 1; transform: translate(-50%, -35%); }
     </style>
 </head>
 <body>
@@ -29,6 +30,8 @@
     let width, height, tiempo = 0, etapa = 0;
     const particulas = [], flores = [], estrellas = [], pajaros = [];
     const nombre = "MARYURIS";
+    // Ajuste 2: Colores neón más saturados y vibrantes
+    const coloresNeon = ['#FF007F', '#FF1493', '#FF00FF', '#00FFFF', '#FFFF00', '#FF4500'];
     const frases = ["Te amo", "Eres la mejor", "Única", "Especial", "Mi motor", "Mi reina"];
 
     function init() {
@@ -38,27 +41,25 @@
         crearJardin();
     }
 
-    // --- FÍSICA AVANZADA ---
+    // --- FÍSICA MEJORADA ---
     class Particula {
         constructor(tx, ty) {
-            // Empiezan en el centro con una explosión
             this.x = width / 2;
             this.y = height / 2;
             this.tx = tx; 
             this.ty = ty;
-            // Velocidad inicial explosiva
             const angulo = Math.random() * Math.PI * 2;
-            const fuerza = Math.random() * 15 + 5;
+            const fuerza = Math.random() * 20 + 8; // Más explosivo
             this.vx = Math.cos(angulo) * fuerza;
             this.vy = Math.sin(angulo) * fuerza;
             
-            this.color = `hsl(${Math.random() * 50 + 330}, 100%, 75%)`; // Tonos rosados/neón
-            this.friccion = 0.95;
-            this.resorte = 0.04; // Fuerza de atracción al objetivo
+            // Ajuste 3: Colores neón aleatorios de la lista saturada
+            this.color = coloresNeon[Math.floor(Math.random() * coloresNeon.length)]; 
+            this.friccion = 0.96;
+            this.resorte = 0.05; // Atracción más rápida
         }
         update() {
             if (etapa >= 1) {
-                // Atracción elástica al punto del nombre
                 let dx = this.tx - this.x;
                 let dy = this.ty - this.y;
                 this.vx += dx * this.resorte;
@@ -72,10 +73,12 @@
         draw() {
             ctx.fillStyle = this.color;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, 1.8, 0, Math.PI*2);
+            // Ajuste 4: Partículas un poco más grandes para que se noten
+            ctx.arc(this.x, this.y, 2.2, 0, Math.PI*2);
             ctx.fill();
-            if (etapa === 1) { // Brillo extra cuando forman el nombre
-                ctx.shadowBlur = 8;
+            if (etapa === 1) { 
+                // Ajuste 5: Brillo neón intenso
+                ctx.shadowBlur = 12;
                 ctx.shadowColor = this.color;
             }
         }
@@ -98,10 +101,8 @@
             ctx.strokeStyle = "rgba(255,255,255,0.8)";
             ctx.lineWidth = 2.5;
             ctx.beginPath();
-            // Ala izquierda
             ctx.moveTo(this.x, this.y + yOff);
             ctx.bezierCurveTo(this.x - 10, this.y - 15 + yOff, this.x - 25, this.y + yOff, this.x - 30, this.y + 5 + yOff);
-            // Ala derecha
             ctx.moveTo(this.x, this.y + yOff);
             ctx.bezierCurveTo(this.x + 10, this.y - 15 + yOff, this.x + 25, this.y + yOff, this.x + 30, this.y + 5 + yOff);
             ctx.stroke();
@@ -121,18 +122,20 @@
     }
 
     function crearNombre() {
-        const fontSize = width < 600 ? 50 : 100;
+        particulas.length = 0; // Limpiar si redimensionan
+        const fontSize = width < 600 ? 55 : 110; // Letras un poco más grandes
         ctx.font = `bold ${fontSize}px Arial`;
         const metrics = ctx.measureText(nombre);
         const startX = (width - metrics.width) / 2;
-        const startY = height / 2 + 50;
+        // Ajuste 6: Posicionar el nombre sobre el cielo más oscuro (mitad superior)
+        const startY = height / 2 - 50; 
         
-        // Creamos puntos para las partículas basándonos en el texto real
         for(let i=0; i<nombre.length; i++) {
             let letraX = startX + (i * (metrics.width / nombre.length));
-            for(let j=0; j<40; j++) { // Densidad de partículas
-                let px = letraX + Math.random() * (fontSize * 0.6);
-                let py = startY + (Math.random() - 0.5) * fontSize;
+            // Ajuste 7: Muchísimas más partículas para rellenar bien la letra
+            for(let j=0; j<60; j++) { 
+                let px = letraX + Math.random() * (fontSize * 0.7);
+                let py = startY + (Math.random() - 0.5) * fontSize * 0.9;
                 particulas.push(new Particula(px, py));
             }
         }
@@ -149,11 +152,12 @@
     }
 
     function dibujarEscena() {
-        // Cielo: Transición de azul profundo a naranja amanecer
+        // Cielo: Transición más dramática (noche -> amanecer neón)
         const g = ctx.createLinearGradient(0, 0, 0, height);
-        g.addColorStop(0, `rgb(${5 + tiempo*30}, ${5 + tiempo*80}, ${20 + tiempo*180})`);
-        g.addColorStop(0.6, `rgb(${255*tiempo}, ${120*tiempo}, ${60*tiempo})`);
-        g.addColorStop(1, `rgb(${255*tiempo}, ${180*tiempo}, ${100*tiempo})`);
+        // Ajuste 8: Parte superior mucho más oscura para que el neón resalte
+        g.addColorStop(0, `rgb(${3 + tiempo*10}, ${3 + tiempo*30}, ${10 + tiempo*60})`);
+        g.addColorStop(0.5, `rgb(${255*tiempo}, ${80*tiempo}, ${40*tiempo})`); // Naranja neón intermedio
+        g.addColorStop(1, `rgb(${255*tiempo}, ${180*tiempo}, ${100*tiempo})`); // Base clara
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, width, height);
 
@@ -166,13 +170,13 @@
         let solSize = 65 + Math.sin(Date.now()*0.003)*5;
         ctx.save();
         ctx.shadowBlur = 50 * tiempo;
-        ctx.shadowColor = "rgba(255, 200, 0, 0.8)";
+        ctx.shadowColor = "rgba(255, 180, 0, 0.7)";
         ctx.fillStyle = "#fffce0";
         ctx.beginPath(); ctx.arc(width/2, solY, solSize, 0, Math.PI*2); ctx.fill();
         ctx.restore();
 
         // Lógica de etapas
-        if (tiempo > 0.85 && etapa === 0) {
+        if (tiempo > 0.8 && etapa === 0) { // Etapa empieza antes
             etapa = 1;
             crearNombre();
             divMensaje.innerHTML = "¡Buenos Días Princesa! 🌸";
@@ -180,9 +184,8 @@
             setTimeout(() => {
                 etapa = 2;
                 divMensaje.innerHTML = "Que hoy todo sea bendición para ti.<br>Te amo ❤️";
-                // Empezar a generar aves
                 setInterval(() => { if(pajaros.length < 5) pajaros.push(new Ave()); }, 3000);
-            }, 6000);
+            }, 7000);
         }
 
         // Dibujar Partículas con rastro
@@ -215,7 +218,8 @@
         ctx.fillStyle = "#051a05";
         ctx.fillRect(0, height - 15, width, 15);
 
-        if (tiempo < 1) tiempo += 0.004;
+        // Ajuste 9: Transición del amanecer ligeramente más lenta para disfrutar el nombre
+        if (tiempo < 1) tiempo += 0.0035; 
         requestAnimationFrame(dibujarEscena);
     }
 
