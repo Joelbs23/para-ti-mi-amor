@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buenos Días Mi Princesa ☀️❤️</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #0b0c2a, #202950);
+        }
+        canvas {
+            display: block;
+        }
+        .mensaje {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 55px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ffd700, 0 0 30px #ffed4e;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .visible {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="mensaje" class="mensaje">Buenos Días mi princesa ❤️</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const mensaje = document.getElementById('mensaje');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let tiempo = 0;
+
+    // --- ESTRELLAS ---
+    let estrellas = [];
+    for(let i=0; i<200; i++) {
+        estrellas.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height,
+            r: Math.random()*1.5
+        });
+    }
+
+    // --- PÁJAROS VOLANDO ---
+    class Pajaro {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height / 3;
+            this.vel = Math.random() * 1.5 + 1;
+        }
+        update() {
+            this.x -= this.vel;
+            if(this.x < -50) {
+                this.x = canvas.width + 50;
+                this.y = Math.random() * canvas.height / 3;
+            }
+        }
+        draw() {
+            ctx.fillStyle = 'black';
+            // Cuerpo
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 4, 0, Math.PI*2);
+            ctx.fill();
+            // Alas
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x - 8, this.y - 5);
+            ctx.lineTo(this.x - 5, this.y);
+            ctx.fill();
+        }
+    }
+
+    let pajaros = [new Pajaro(), new Pajaro(), new Pajaro()];
+
+
+    // --- ANIMACIÓN PRINCIPAL ---
+    function animar() {
+        tiempo += 0.003; // Controla la velocidad del amanecer
+        if(tiempo > 1) tiempo = 1;
+
+        // --- CAMBIO DE COLOR DEL CIELO ---
+        // De azul oscuro/noche a azul claro y naranja amanecer
+        let r = 11 + tiempo * (255 - 11);
+        let g = 12 + tiempo * (210 - 12);
+        let b = 42 + tiempo * (180 - 42);
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, `rgb(${r},${g},${b})`);
+        gradient.addColorStop(1, `rgb(255, ${140 + tiempo*50}, ${60 - tiempo*20})`);
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+        // --- ESTRELLAS BRILLANDO Y DESAPARECIENDO ---
+        ctx.fillStyle = `rgba(255,255,255,${1 - tiempo})`;
+        estrellas.forEach(e => {
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+
+        // --- NUBES ---
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + tiempo*0.2})`;
+        ctx.beginPath();
+        ctx.arc(200 + Math.sin(tiempo)*20, 100, 50, 0, Math.PI*2);
+        ctx.arc(250, 90, 60, 0, Math.PI*2);
+        ctx.arc(300, 100, 45, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width - 300 + Math.cos(tiempo)*15, 150, 40, 0, Math.PI*2);
+        ctx.arc(canvas.width - 250, 140, 50, 0, Math.PI*2);
+        ctx.fill();
+
+
+        // --- EL SOL SALIENDO ---
+        let solY = canvas.height - tiempo * (canvas.height * 0.6);
+        let brillo = 10 + tiempo * 20;
+        
+        // Brillo alrededor
+        ctx.shadowColor = "#ffdd00";
+        ctx.shadowBlur = brillo;
+        
+        ctx.fillStyle = "#ffed4e";
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, solY, 70, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+
+
+        // --- PÁJAROS VOLANDO ---
+        pajaros.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+
+        // --- MOSTRAR MENSAJE CUANDO AMANEZCA ---
+        if(tiempo > 0.7) {
+            mensaje.classList.add('visible');
+        }
+
+        requestAnimationFrame(animar);
+    }
+
+    animar();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+</script>
+
+</body>
+</html>
