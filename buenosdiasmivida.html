@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buenos Días Mi Princesa 🌅🌸</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .mensaje {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 55px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 15px #fff, 0 0 30px #ffd700, 0 0 45px #ffed4e;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .visible {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="mensaje" class="mensaje">Buenos Días mi princesa ❤️</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const mensaje = document.getElementById('mensaje');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let tiempo = 0;
+
+    // --- ESTRELLAS ---
+    let estrellas = [];
+    for(let i=0; i<200; i++) {
+        estrellas.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height,
+            r: Math.random()*1.5
+        });
+    }
+
+    // --- PÁJAROS ---
+    class Pajaro {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height / 3;
+            this.vel = Math.random() * 1.5 + 1;
+        }
+        update() { this.x -= this.vel; if(this.x < -50) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height / 3; } }
+        draw() {
+            ctx.fillStyle = 'black';
+            ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - 8, this.y - 5); ctx.lineTo(this.x - 5, this.y); ctx.fill();
+        }
+    }
+    let pajaros = [new Pajaro(), new Pajaro(), new Pajaro()];
+
+
+    // --- FLORES DEL JARDÍN ---
+    const coloresFlores = ['#ff69b4', '#ff1493', '#ff6347', '#ffd700', '#dda0dd', '#9370db'];
+    class Flor {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.tam = Math.random() * 18 + 12;
+            this.color = coloresFlores[Math.floor(Math.random() * coloresFlores.length)];
+            this.angulo = Math.random() * Math.PI * 2;
+        }
+        dibujar(brillo) {
+            this.angulo += 0.02;
+            let movimiento = Math.sin(this.angulo) * 2;
+            let alturaReal = 100 * brillo;
+
+            // Tallo
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x, this.y - alturaReal);
+            ctx.strokeStyle = '#2d882d';
+            ctx.lineWidth = 5; ctx.stroke();
+
+            if(brillo < 0.5) return;
+
+            // Hojas
+            ctx.beginPath();
+            ctx.ellipse(this.x - 10, this.y - alturaReal + 30, 15, 8, -0.5, 0, Math.PI*2);
+            ctx.ellipse(this.x + 10, this.y - alturaReal + 45, 15, 8, 0.5, 0, Math.PI*2);
+            ctx.fillStyle = '#44bb44'; ctx.fill();
+
+            // Petalos
+            ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color; ctx.shadowBlur = 10;
+            for(let i=0; i<8; i++) {
+                let ang = (i * Math.PI * 2) / 8;
+                let px = this.x + Math.cos(ang) * (this.tam + movimiento);
+                let py = this.y - alturaReal + Math.sin(ang) * (this.tam + movimiento);
+                ctx.beginPath(); ctx.ellipse(px, py, this.tam/3, this.tam/2, ang, 0, Math.PI*2); ctx.fill();
+            }
+            // Centro
+            ctx.beginPath(); ctx.arc(this.x, this.y - alturaReal, this.tam/3, 0, Math.PI*2); ctx.fillStyle = '#ffd700'; ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    let flores = [];
+    function crearJardin() {
+        flores = [];
+        for(let i=0; i<20; i++) {
+            let x = (canvas.width / 21) * (i+1) + Math.random()*30-15;
+            let y = canvas.height - 40;
+            flores.push(new Flor(x, y));
+        }
+    }
+    crearJardin();
+
+
+    // --- ANIMACIÓN PRINCIPAL ---
+    function animar() {
+        tiempo += 0.004;
+        if(tiempo > 1) tiempo = 1;
+
+        // CIELO CAMBIANDO DE COLOR
+        let r = 11 + tiempo * (255 - 11);
+        let g = 12 + tiempo * (210 - 12);
+        let b = 42 + tiempo * (180 - 42);
+        const gradient = ctx.createLinearGradient(0,0,0,canvas.height);
+        gradient.addColorStop(0, `rgb(${r},${g},${b})`);
+        gradient.addColorStop(1, `rgb(255, ${140 + tiempo*60}, ${60 - tiempo*20})`);
+        ctx.fillStyle = gradient; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+
+        // ESTRELLAS
+        ctx.fillStyle = `rgba(255,255,255,${1-tiempo})`;
+        estrellas.forEach(e => { ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); });
+
+
+        // NUBES
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + tiempo*0.3})`;
+        ctx.beginPath(); ctx.arc(200 + Math.sin(tiempo)*20, 100, 50, 0, Math.PI*2); ctx.arc(250,90,60,0,Math.PI*2); ctx.arc(300,100,45,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(canvas.width-300 + Math.cos(tiempo)*15, 150, 40, 0, Math.PI*2); ctx.arc(canvas.width-250,140,50,0,Math.PI*2); ctx.fill();
+
+
+        // SOL
+        let solY = canvas.height - tiempo * (canvas.height * 0.6);
+        ctx.shadowColor = "#ffdd00"; ctx.shadowBlur = 10 + tiempo * 30;
+        ctx.fillStyle = "#ffed4e"; ctx.beginPath(); ctx.arc(canvas.width/2, solY, 70, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+
+
+        // PÁJAROS
+        pajaros.forEach(p => { p.update(); p.draw(); });
+
+
+        // JARDÍN DE FLORES
+        flores.forEach(f => { f.dibujar(tiempo); });
+
+
+        // PASTO
+        ctx.fillStyle = '#2d882d'; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
+
+
+        // MENSAJE
+        if(tiempo > 0.7) mensaje.classList.add('visible');
+
+        requestAnimationFrame(animar);
+    }
+
+    animar();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        crearJardin();
+    });
+
+</script>
+
+</body>
+</html>
