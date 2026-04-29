@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Mi Amor ❤️</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #0a0a1a; font-family: 'Arial', sans-serif; }
+        canvas { display: block; }
+        .contenedor-texto {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 90%;
+            z-index: 10;
+        }
+        .mensaje-principal {
+            color: white;
+            font-size: clamp(26px, 6vw, 46px);
+            font-weight: bold;
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            margin-bottom: 15px;
+        }
+        .sub-mensaje {
+            color: #fff0f5;
+            font-size: clamp(18px, 4vw, 28px);
+            text-shadow: 1px 1px 10px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .visible { opacity: 1 !important; }
+    </style>
+</head>
+<body>
+
+<div class="contenedor-texto">
+    <div id="txt1" class="mensaje-principal">Buenos días mi amor 🥰</div>
+    <div id="txt2" class="sub-mensaje">Que este día sea lleno de alegría para ti, te amo ❤️</div>
+</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const txt1 = document.getElementById('txt1');
+    const txt2 = document.getElementById('txt2');
+    
+    let width, height, tiempo = 0;
+    const pajaros = [], estrellas = [], flores = [];
+    const frasesAves = ["Te amo", "Eres mi vida", "Linda", "Mi reina", "Besitos"];
+
+    function init() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        estrellas.length = 0;
+        for(let i=0; i<80; i++) estrellas.push({x: Math.random()*width, y: Math.random()*height, s: Math.random()*1.2});
+        crearJardin();
+    }
+
+    class Ave {
+        constructor(texto) {
+            this.x = width + 100;
+            this.y = Math.random() * height * 0.25 + 60;
+            this.v = 2.2; 
+            this.txt = texto;
+            this.fase = Math.random() * Math.PI;
+        }
+        draw() {
+            this.x -= this.v;
+            this.fase += 0.12;
+            let yOff = Math.sin(this.fase) * 5;
+            ctx.save();
+            ctx.strokeStyle = "rgba(255,255,255,0.9)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(this.x - 12, this.y + yOff);
+            ctx.quadraticCurveTo(this.x, this.y - 10 + yOff, this.x + 12, this.y + yOff);
+            ctx.stroke();
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.txt, this.x, this.y + 30);
+            ctx.restore();
+        }
+    }
+
+    function crearJardin() {
+        flores.length = 0;
+        const cant = width < 600 ? 12 : 25;
+        for(let i=0; i<cant; i++) {
+            flores.push({
+                x: (width/cant)*i + (Math.random()*20),
+                colorPetalos: `hsl(${340 + Math.random()*40}, 90%, 70%)`,
+                colorCentro: "#ffeb3b",
+                alturaMax: 60 + Math.random()*40,
+                faseCrecimiento: 0,
+                oscilacion: Math.random() * Math.PI
+            });
+        }
+    }
+
+    function dibujarFlor(f, hActual) {
+        f.oscilacion += 0.03;
+        let xOffset = Math.sin(f.oscilacion) * 4;
+        
+        // Tallo
+        ctx.strokeStyle = "#2e7d32";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(f.x, height);
+        ctx.quadraticCurveTo(f.x + xOffset, height - hActual/2, f.x + xOffset, height - hActual);
+        ctx.stroke();
+
+        // Hojas del tallo
+        if (hActual > 20) {
+            ctx.fillStyle = "#388e3c";
+            ctx.beginPath();
+            ctx.ellipse(f.x + xOffset - 5, height - hActual/2, 7, 3, Math.PI/4, 0, Math.PI*2);
+            ctx.ellipse(f.x + xOffset + 5, height - hActual/2 + 5, 7, 3, -Math.PI/4, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Pétalos (Solo si ya creció un poco)
+        if (tiempo > 0.6) {
+            const numPetalos = 5;
+            const rPetalo = 6;
+            ctx.fillStyle = f.colorPetalos;
+            for (let i = 0; i < numPetalos; i++) {
+                let ang = (i * Math.PI * 2) / numPetalos;
+                let px = (f.x + xOffset) + Math.cos(ang) * 7;
+                let py = (height - hActual) + Math.sin(ang) * 7;
+                ctx.beginPath();
+                ctx.arc(px, py, rPetalo, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // Centro de la flor
+            ctx.fillStyle = f.colorCentro;
+            ctx.beginPath();
+            ctx.arc(f.x + xOffset, height - hActual, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    let aveIndex = 0;
+    function lanzarAve() {
+        if (tiempo >= 1) {
+            pajaros.push(new Ave(frasesAves[aveIndex]));
+            aveIndex = (aveIndex + 1) % frasesAves.length;
+        }
+        setTimeout(lanzarAve, 4500);
+    }
+
+    function dibujar() {
+        const g = ctx.createLinearGradient(0, 0, 0, height);
+        g.addColorStop(0, `rgb(${10 + tiempo*30}, ${15 + tiempo*80}, ${35 + tiempo*160})`);
+        g.addColorStop(0.5, `rgb(${255*tiempo}, ${110*tiempo}, ${50*tiempo})`);
+        g.addColorStop(1, `rgb(${255*tiempo}, ${170*tiempo}, ${90*tiempo})`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, width, height);
+
+        // Estrellas
+        ctx.fillStyle = `rgba(255,255,255,${1-tiempo})`;
+        estrellas.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
+
+        // Sol
+        let solY = height - (tiempo * height * 0.72);
+        ctx.save();
+        ctx.shadowBlur = 30 * tiempo;
+        ctx.shadowColor = "rgba(255,165,0,0.8)";
+        ctx.fillStyle = "#fffce0";
+        ctx.beginPath(); ctx.arc(width/2, solY, 55, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        // Dibujar el jardín mejorado
+        flores.forEach(f => dibujarFlor(f, f.alturaMax * tiempo));
+
+        // Suelo
+        ctx.fillStyle = "#0a260a";
+        ctx.fillRect(0, height - 10, width, 10);
+
+        // Aves
+        pajaros.forEach((p, i) => {
+            p.draw();
+            if(p.x < -100) pajaros.splice(i, 1);
+        });
+
+        if (tiempo < 1) {
+            tiempo += 0.0035;
+        } else if (!txt1.classList.contains('visible')) {
+            txt1.classList.add('visible');
+            setTimeout(() => txt2.classList.add('visible'), 1200);
+        }
+
+        requestAnimationFrame(dibujar);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    lanzarAve(); // Iniciar ciclo de aves
+    dibujar();
+</script>
+</body>
+</html>
